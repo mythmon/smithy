@@ -1,0 +1,9 @@
+[package]
+authors = ["Mike Cooper <mythmon@gmail.com>"]
+name = "smithy"
+version = "0.1.0"
+
+[dependencies]
+tempdir = "0.3.4"
+walkdir = "0.1.5"
+yaml-rust = "0.3.3"
