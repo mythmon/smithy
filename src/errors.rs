@@ -11,6 +11,15 @@ pub struct SmithyError {
     cause: Option<Box<Error>>,
 }
 
+impl SmithyError {
+    pub fn new<T: Into<String>>(descr: T, cause: Option<Box<Error>>) -> Self {
+        SmithyError {
+            descr: descr.into(),
+            cause: cause,
+        }
+    }
+}
+
 impl Display for SmithyError {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), fmt::Error> {
         try!(write!(fmt, "{}", self.descr));
@@ -26,27 +35,18 @@ impl Error for SmithyError {
 
 impl From<io::Error> for SmithyError {
     fn from(err: io::Error) -> SmithyError {
-        SmithyError {
-            descr: "Encountered an IO error".to_string(),
-            cause: Some(Box::new(err)),
-        }
+        SmithyError::new(format!("IO error: {}", err), Some(Box::new(err)))
     }
 }
 
 impl From<StripPrefixError> for SmithyError {
     fn from(err: StripPrefixError) -> SmithyError {
-        SmithyError {
-            descr: "Cannot process file outside of input path".to_string(),
-            cause: Some(Box::new(err)),
-        }
+        SmithyError::new("Cannot process file outside of input path", Some(Box::new(err)))
     }
 }
 
 impl From<WalkDirError> for SmithyError {
     fn from(err: WalkDirError) -> SmithyError {
-        SmithyError {
-            descr: "Could not traverse input dir".to_string(),
-            cause: Some(Box::new(err)),
-        }
+        SmithyError::new("Could not traverse input dir", Some(Box::new(err)))
     }
 }

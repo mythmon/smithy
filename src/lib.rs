@@ -1,10 +1,12 @@
 #![feature(question_mark)]
+#![feature(specialization)]
 extern crate tempdir;
 extern crate walkdir;
 extern crate yaml_rust;
 
 mod errors;
 
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::fs::{self, File};
 use std::io::{Read, Write};
@@ -98,10 +100,18 @@ impl Document {
         if splits.len() >= 3 && splits[0] == "" {
             let front_matter_text = splits[1];
             let body = splits[2..].join("---\n").trim().to_string() + "\n";
-            let front_matter = YamlLoader::load_from_str(front_matter_text).unwrap()[0].clone();
+            let mut front_matter = YamlLoader::load_from_str(front_matter_text).unwrap()[0].clone();
+            if let Yaml::Hash(mut hash) = front_matter {
+                hash.insert(Yaml::String("body".to_string()), Yaml::String(body.to_string()));
+                hash.insert(Yaml::String("original".to_string()), Yaml::String(text.to_string()));
+                front_matter = Yaml::Hash(hash);
+            }
             Document { metadata: front_matter, body: body, path: path }
         } else {
-            Document { metadata: Yaml::Null, body: text.to_string(), path: path }
+            let mut metadata = BTreeMap::new();
+            metadata.insert(Yaml::String("body".to_string()), Yaml::String(text.to_string()));
+            metadata.insert(Yaml::String("original".to_string()), Yaml::String(text.to_string()));
+            Document { metadata: Yaml::Hash(metadata), body: text.to_string(), path: path }
         }
     }
 }
